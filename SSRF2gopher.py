@@ -13,16 +13,16 @@ Created by eMVee
     return banner
 
 def url_encode_payload(data):
-    # Only encode the ':', ' ', '=' and '&' characters
-    encoded_data = data.replace(':', '%3a').replace(' ', '%20').replace('=', '%3d').replace('&', '%26')
+    # Only  ' ', '=' and '&' characters
+    encoded_data = data.replace(' ', '%20').replace('=', '%3d').replace('&', '%26')
     # Replace newline characters with their URL-encoded equivalent
     encoded_data = encoded_data.replace('\n', '%0a')
 
     return encoded_data
 
 def double_url_encode_payload(data):
-    # Double encode the ' ' from `%20` to '%2520' characters
-    encoded_data = data.replace('%20', '%2520')
+    # Encode the ':' Double encode the ' ' from `%20` to '%2520' characters
+    encoded_data = data.replace(':', '%3a').replace('%20', '%2520')
     # Replace newline character from '%0a' to '%250a'
     encoded_data = encoded_data.replace('%0a', '%250a')
 
