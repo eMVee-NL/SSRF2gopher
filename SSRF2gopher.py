@@ -33,18 +33,29 @@ def another_option(data):
 def host_header(host):
     return "Host: " + host
 
-def generate_gopher_request(host, port, endpoint, method):
+def generate_gopher_request(host, port, endpoint, method, post_data=""):
+    if method == "POST":
+        return f"gopher://{host}:{port}/_{method} {endpoint} HTTP/1.1"
     return f"gopher://{host}:{port}/_{method} {endpoint} HTTP/1.1"
 
-def generate_gopher_payload(host, port, endpoint, custom_headers, method):
+def generate_gopher_payload(host, port, endpoint, custom_headers, method, post_data=""):
     payload = generate_gopher_request(host, port, endpoint, method) + "\n"
     payload += host_header(host) + "\n"
     
-    # Add custom headers
+    if method == "POST" and post_data:
+        if "Content-Type" not in custom_headers:
+            custom_headers["Content-Type"] = "application/x-www-form-urlencoded"
+        if "Content-Length" not in custom_headers:
+            custom_headers["Content-Length"] = str(len(post_data))
+
     for header, value in custom_headers.items():
         payload += f"{header}: {value}\n"
     
-    payload += "\n"  # Empty line to separate headers from body
+    payload += "\n"
+    
+    if method == "POST" and post_data:
+        payload += post_data
+        
     return payload
 
 def parse_headers(headers_list):
@@ -67,42 +78,46 @@ def main():
     parser.add_argument('-e', '--endpoint', help='Target endpoint')
     parser.add_argument('-H', '--headers', nargs='*', help='Custom headers in format "Name:Value"')
     parser.add_argument('-m', '--method', help='HTTP method (GET, POST, PUT, etc.)')
+    parser.add_argument('-d', '--data', help='POST data body parameters')
     
     args = parser.parse_args()
 
     print(banner())
 
-    # Get host
     if args.host:
         host = args.host
     else:
         print("[?] What is the address of the Host? ")
         host = input()
 
-    # Get port
     if args.port:
         port = args.port
     else:
         print("[?] What port should be used for gopher? ")
         port = input()
 
-    # Get endpoint
     if args.endpoint:
         endpoint = args.endpoint
     else:
         print("[?] What endpoint should be used for gopher? ")
         endpoint = input()
 
-    # Get HTTP method
     if args.method:
         method = args.method.upper()
     else:
         print("[?] What HTTP method should be used? (GET, POST, PUT, etc.) ")
         method = input().upper()
         if not method:
-            method = "GET"  # Default to GET if no input provided
+            method = "GET"
 
-    # Handle custom headers
+    post_data = ""
+    if method == "POST":
+        if args.data:
+            post_data = args.data
+        else:
+            print("[?] Enter POST data body parameters: ")
+            post_data = input().strip()
+
     if args.headers:
         custom_headers = parse_headers(args.headers)
     else:
@@ -120,7 +135,7 @@ def main():
     try:
         print("\n[!] Plain text payload:")
         print("\n")
-        payload = generate_gopher_payload(host, port, endpoint, custom_headers, method)
+        payload = generate_gopher_payload(host, port, endpoint, custom_headers, method, post_data)
         print(payload)
 
         encoded_payload = url_encode_payload(payload)
