@@ -36,3 +36,8 @@ Enter the following details:
 - Data what should be submitted something like, example `username=Hacker&password=Password1234&email=email@domain.tld`
 - Method (POST, GET...)
 - HTTP Headers (Header:value)
+
+
+
+old screenshot
+![image](https://github.com/eMVee-NL/SSRF2gopher/assets/45883753/55ce27c4-9f24-4c13-9212-3822fb7032e3)
