@@ -9,22 +9,25 @@ Screenshot of new version
 
 
 ## Usage
+## CLI Usage
 
+```bash
+python3 SSRF2gopher.py [-h] [-u HOST] [-p PORT] [-e ENDPOINT] [-H [HEADERS ...]] [-m METHOD] [-d DATA]
 ```
-usage: SSRF2gopher.py [-h] [-u HOST] [-p PORT] [-e ENDPOINT] [-H [HEADERS ...]] [-m METHOD]
 
-Gopher payload generator with custom headers support
+## Options
 
-options:
-  -h, --help            show this help message and exit
-  -u, --host HOST       Target host address
-  -p, --port PORT       Gopher port number
-  -e, --endpoint ENDPOINT
-                        Target endpoint
-  -H, --headers [HEADERS ...]
-                        Custom headers in format "Name:Value"
-  -m, --method METHOD   HTTP method (GET, POST, PUT, etc.)
-```
+| Option | Long Variant | Description |
+| :--- | :--- | :--- |
+| `-h` | `--help` | Show this help message and exit. |
+| `-u` | `--host` | Target internal host address or domain name. |
+| `-p` | `--port` | Gopher/HTTP port number on the target server. |
+| `-e` | `--endpoint` | Target endpoint or path (e.g., `/index.php`). |
+| `-H` | `--headers` | Custom headers in `"Name:Value"` format separated by spaces. |
+| `-m` | `--method` | HTTP method to be used (GET, POST, PUT, etc.). Default: GET. |
+| `-d` | `--data` | POST data body parameters (x-www-form-urlencoded). |
+
+---
 
 Enter the following details:
 - Host, example `localhost`
